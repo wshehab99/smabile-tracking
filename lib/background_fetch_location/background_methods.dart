@@ -1,5 +1,6 @@
 import 'package:background_fetch/background_fetch.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:rest_api_login/background_fetch_location/send_location.dart';
 
 import '../utils/geo_location.dart';
 
@@ -56,9 +57,16 @@ class BackgroundMethods {
     // <-- Event handler
     // This is the fetch-event callback.
     print("[BackgroundFetch] Event received $taskId");
-    final Position position = await LocationServices().determinePosition();
+    switch (taskId) {
+      case 'com.transistorSoft.customTask':
+        scheduleTask();
+        break;
+      default:
+        final Position position = await LocationServices().determinePosition();
 
-    print("location fetched $position");
+        print("location fetched $position");
+    }
+    await SendLocation.sendLocation();
     // IMPORTANT:  You must signal completion of your task or the OS can punish your app
     // for taking too long in the background.
     BackgroundFetch.finish(taskId);
@@ -71,11 +79,15 @@ class BackgroundMethods {
     BackgroundFetch.finish(taskId);
   }
 
-  static void scheduleTask() {
-    BackgroundFetch.scheduleTask(TaskConfig(
-      taskId: "com.foo.customtask",
+  static void scheduleTask() async {
+    await BackgroundFetch.scheduleTask(TaskConfig(
+      taskId: "com.transistorSoft.customTask",
       delay: 60000, // milliseconds
-      periodic: false,
+      stopOnTerminate: false,
+      periodic: true, requiresCharging: false,
     ));
+    final Position position = await LocationServices().determinePosition();
+
+    print("location fetched customTask $position");
   }
 }
