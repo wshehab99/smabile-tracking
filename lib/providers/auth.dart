@@ -110,7 +110,7 @@ class Auth with ChangeNotifier {
       _autoLogout();
       notifyListeners();
 
-      final prefs = await SharedPreferences.getInstance();
+      final pref = await SharedPreferences.getInstance();
       final userData = json.encode({
         'token': _token,
         'userId': _userId,
@@ -118,7 +118,7 @@ class Auth with ChangeNotifier {
         'expiryDate': _expiryDate!.toIso8601String(),
       });
 
-      prefs.setString('userData', userData);
+      await pref.setString('userData', userData);
 
       // print('check' + userData.toString());
     } catch (e) {

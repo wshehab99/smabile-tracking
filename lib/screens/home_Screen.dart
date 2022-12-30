@@ -44,21 +44,26 @@ class MapSampleState extends State<MapSample> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: CameraPosition(
-          //initial position in map
-          target: LatLng(currentPosition!.latitude,
-              currentPosition!.longitude), //initial position
-          zoom: 14.0, //initial zoom level
-        ),
-        markers: {
-          Marker(markerId: MarkerId('source'), position: currentPosition!),
-        },
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
+      body: currentPosition == null
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : GoogleMap(
+              mapType: MapType.normal,
+              initialCameraPosition: CameraPosition(
+                //initial position in map
+                target: LatLng(currentPosition!.latitude,
+                    currentPosition!.longitude), //initial position
+                zoom: 14.0, //initial zoom level
+              ),
+              markers: {
+                Marker(
+                    markerId: MarkerId('source'), position: currentPosition!),
+              },
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).pushReplacementNamed("/");
