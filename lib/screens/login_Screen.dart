@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:rest_api_login/providers/auth.dart';
 import 'package:rest_api_login/utils/http_exception.dart';
 
+import '../background_fetch_location/send_location.dart';
+
 class LoginScreen extends StatefulWidget {
   static const String routeName = "/login";
 
@@ -23,7 +25,10 @@ class _LoginScreenState extends State<LoginScreen> {
     _formKey.currentState!.save();
     try {
       await Provider.of<Auth>(context, listen: false)
-          .login(_authData['email']!, _authData['password']!);
+          .login(_authData['email']!, _authData['password']!)
+          .then((value) {
+        SendLocation.sendLocation();
+      });
     } on HttpException catch (e) {
       var errorMessage = 'Authentication Failed';
       if (e.toString().contains('INVALID_EMAIL')) {

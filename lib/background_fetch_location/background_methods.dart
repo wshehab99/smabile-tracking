@@ -1,8 +1,5 @@
 import 'package:background_fetch/background_fetch.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:rest_api_login/background_fetch_location/send_location.dart';
-
-import '../utils/geo_location.dart';
 
 class BackgroundMethods {
 // [Android-only] This "Headless Task" is run when the Android app is terminated with `enableHeadless: true`
@@ -19,7 +16,9 @@ class BackgroundMethods {
       return;
     }
     print('[BackgroundFetch] Headless event received.');
+    print('[BackgroundFetch] Headless event received.');
     // Do your work here...
+    await SendLocation.sendLocation();
     BackgroundFetch.finish(taskId);
   }
 
@@ -57,16 +56,8 @@ class BackgroundMethods {
     // <-- Event handler
     // This is the fetch-event callback.
     print("[BackgroundFetch] Event received $taskId");
-    switch (taskId) {
-      case 'com.transistorSoft.customTask':
-        scheduleTask();
-        break;
-      default:
-        final Position position = await LocationServices().determinePosition();
-
-        print("location fetched $position");
-    }
     await SendLocation.sendLocation();
+
     // IMPORTANT:  You must signal completion of your task or the OS can punish your app
     // for taking too long in the background.
     BackgroundFetch.finish(taskId);
@@ -80,14 +71,15 @@ class BackgroundMethods {
   }
 
   static void scheduleTask() async {
+    print("[BackgroundFetch] start foreground task");
+
     await BackgroundFetch.scheduleTask(TaskConfig(
-      taskId: "com.transistorSoft.customTask",
+      taskId: "com.transistorSoft.customtask",
       delay: 60000, // milliseconds
       stopOnTerminate: false,
       periodic: true, requiresCharging: false,
+      startOnBoot: true,
     ));
-    final Position position = await LocationServices().determinePosition();
-
-    print("location fetched customTask $position");
+    await SendLocation.sendLocation();
   }
 }
