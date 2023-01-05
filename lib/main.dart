@@ -26,9 +26,9 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: Auth(),
+      value: Auth()..tryAutoLogin(),
       child: Consumer<Auth>(
-        builder: (ctx, auth, _) => MaterialApp(
+        builder: (context, auth, _) => MaterialApp(
           title: 'Mz solution tracking',
           theme: ThemeData(
             primarySwatch: Colors.blue,
@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
               ? HomeScreen()
               : FutureBuilder(
                   future: auth.tryAutoLogin(),
-                  builder: (ctx, snapshot) =>
+                  builder: (context, snapshot) =>
                       snapshot.connectionState == ConnectionState.waiting
                           ? SplashScreen()
                           : LoginScreen(),

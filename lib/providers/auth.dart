@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:rest_api_login/background_fetch_location/location_dialog.dart';
 import 'package:rest_api_login/utils/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:rest_api_login/utils/http_exception.dart';
@@ -37,19 +39,17 @@ class Auth with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    _token = "";
-    _userEmail = "";
-    _userId = "";
+    _token = null;
+    _userEmail = null;
+    _userId = null;
 
     if (_authTimer != null) {
       _authTimer!.cancel();
       _authTimer = null;
     }
-
-    notifyListeners();
-
     final pref = await SharedPreferences.getInstance();
     pref.clear();
+    notifyListeners();
   }
 
   void _autoLogout() {
@@ -60,17 +60,29 @@ class Auth with ChangeNotifier {
     _authTimer = Timer(Duration(seconds: timeToExpiry), logout);
   }
 
+  Future checkBackgroundPermissions(BuildContext context) async {
+    bool isDismissed = ModalRoute.of(context)?.isCurrent != true;
+    if (!isDismissed) {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.always) {
+        await LocationDialog.showLocationDialog(context);
+      }
+    }
+  }
+
   Future<bool> tryAutoLogin() async {
     final pref = await SharedPreferences.getInstance();
     if (!pref.containsKey('userData')) {
+      print("no user data");
       return false;
     }
 
     final extractedUserData =
-        json.decode(pref.getString('userData')!) as Map<String, Object>;
+        Map<String, dynamic>.from(json.decode(pref.getString('userData')!));
 
     final expiryDate =
         DateTime.parse(extractedUserData['expiryDate'].toString());
+    print(expiryDate);
     if (expiryDate.isBefore(DateTime.now())) {
       return false;
     }
@@ -79,8 +91,6 @@ class Auth with ChangeNotifier {
     _userEmail = extractedUserData['userEmail'].toString();
     _expiryDate = expiryDate;
     notifyListeners();
-    _autoLogout();
-
     return true;
   }
 
