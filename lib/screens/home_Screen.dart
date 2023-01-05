@@ -32,6 +32,7 @@ class MapSampleState extends State<MapSample> {
 
   _getUserLocation() async {
     currentLocation = await new LocationServices().determinePosition();
+
     setState(() {
       currentPosition =
           LatLng(currentLocation.latitude, currentLocation.longitude);
@@ -48,26 +49,30 @@ class MapSampleState extends State<MapSample> {
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : GoogleMap(
-              mapType: MapType.normal,
-              initialCameraPosition: CameraPosition(
-                //initial position in map
-                target: LatLng(currentPosition!.latitude,
-                    currentPosition!.longitude), //initial position
-                zoom: 14.0, //initial zoom level
-              ),
-              markers: {
-                Marker(
-                    markerId: MarkerId('source'), position: currentPosition!),
-              },
-              onMapCreated: (GoogleMapController controller) {
-                _controller.complete(controller);
-              },
-            ),
+          : Builder(builder: (context) {
+              Provider.of<Auth>(context).checkBackgroundPermissions(context);
+
+              return GoogleMap(
+                mapType: MapType.normal,
+                initialCameraPosition: CameraPosition(
+                  //initial position in map
+                  target: LatLng(currentPosition!.latitude,
+                      currentPosition!.longitude), //initial position
+                  zoom: 14.0, //initial zoom level
+                ),
+                markers: {
+                  Marker(
+                      markerId: MarkerId('source'), position: currentPosition!),
+                },
+                onMapCreated: (GoogleMapController controller) {
+                  _controller.complete(controller);
+                },
+              );
+            }),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
+        onPressed: () async {
+          await Provider.of<Auth>(context, listen: false).logout();
           Navigator.of(context).pushReplacementNamed("/");
-          Provider.of<Auth>(context, listen: false).logout();
         },
         label: Text('Logout'),
         icon: Icon(Icons.logout),
